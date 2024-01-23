@@ -39,7 +39,5 @@ Thumbs.db
 
 # Specific to this demo #
 #########################
-data/
 protos/
 utils/
-*.pth

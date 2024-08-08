@@ -2,6 +2,8 @@
 #-*- coding: utf-8 -*-
 
 import time, pdb, argparse, subprocess, pickle, os, gzip, glob
+import json
+from datetime import datetime, timezone
 
 from SyncNetInstance import *
 
@@ -22,10 +24,24 @@ def main(opt, filename=None):
     for idx, fname in enumerate(flist):
         offset, conf, dist = s.evaluate(opt, videofile=fname)
         dists.append(dist)
-        if filename is not None and os.path.exists(filename):
-            with open(filename, 'a') as f:
-                f.write("%s %f %f %f %f %f %f\n" % (opt.videofile, offset, conf, dist.min(), dist.max(), dist.mean(), numpy.median(dist)))
+        if filename is not None:            
+            conscent_video_info = {
+                "video_filename": opt.videofile,
+                "timestamp": datetime.now(timezone.utc).strftime("UTC-0: %Y-%m-%d-%H-%M-%S"),
+                "av_offset": float(offset),
+                "min_dist": float(dist.min()),
+                "max_dist": float(dist.max()),
+                "mean_dist": float(dist.mean()),
+                "confidence_score": float(conf),
+            }
+            
+            # with open(filename, 'a') as f:
+            #     f.write("%s %f %f %f %f %f %f\n" % (opt.videofile, offset, conf, dist.min(), dist.max(), dist.mean(), numpy.median(dist)))
+            # f.close()
+            with open(filename, 'w') as f:
+                f.write(json.dumps(conscent_video_info, indent=4))
             f.close()
+            
         else:
             raise Exception(f"No such file {filename} provided, cannot write to it.")
 
@@ -34,6 +50,9 @@ def main(opt, filename=None):
 
     with open(os.path.join(opt.work_dir,opt.reference,'activesd.pckl'), 'wb') as fil:
         pickle.dump(dists, fil)
+    
+    
+    return conscent_video_info
 
 
 
@@ -48,6 +67,7 @@ if __name__ == '__main__':
     parser.add_argument('--data_dir', type=str, default='data/work', help='')
     parser.add_argument('--videofile', type=str, default='', help='')
     parser.add_argument('--reference', type=str, default='', help='')
+    parser.add_argument('--save_file_path', type=str, default='./result.json', help='')
     opt = parser.parse_args()
 
     setattr(opt,'avi_dir',os.path.join(opt.data_dir,'pyavi'))
@@ -55,4 +75,4 @@ if __name__ == '__main__':
     setattr(opt,'work_dir',os.path.join(opt.data_dir,'pywork'))
     setattr(opt,'crop_dir',os.path.join(opt.data_dir,'pycrop'))
     
-    main(opt=opt, filename='./result.txt')
+    main(opt=opt, filename=opt.save_file_path)

@@ -3,11 +3,13 @@ import glob
 import numpy as np
 
 
-def get_conscent_video_verification_info(video_path):
+def get_conscent_video_verification_info(video_path, output_json_path):
     if not os.path.exists(video_path):
         raise FileNotFoundError(f"Video file {video_path} not found.")
-    video_root = os.path.split(video_path)[0]
-    output_json_path = os.path.join(video_root, 'conscent_info.json')
+
+    if output_json_path[:-5] != ".json":
+        raise ValueError(f"Output json file path {output_json_path} is not a json file.")
+
     try:
         os.system(f"python run_pipeline.py --videofile {video_path} --reference {os.path.split(video_path)[-1][:-4]} --data_dir ./output")
         os.system(f"python run_syncnet.py --videofile {video_path} --reference {os.path.split(video_path)[-1][:-4]} --data_dir ./output --save_file_path {output_json_path}")
@@ -65,7 +67,8 @@ if __name__ == '__main__':
     import argparse
     
     parser = argparse.ArgumentParser(description = "SyncNet")
-    parser.add_argument('--video_path', type=str, default='', help='Path to the video file')
+    parser.add_argument("--input_video_path", type=str, default="", help="Path to the video file")
+    parser.add_argument("--output_json_path", type=str, default="", help="Path to the output json file")
     args = parser.parse_args()
-    
-    get_conscent_video_verification_info(video_path=args.video_path)
+
+    get_conscent_video_verification_info(video_path=args.input_video_path, output_json_path=args.output_json_path)

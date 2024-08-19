@@ -23,17 +23,16 @@ def main(opt, filename=None):
 
     dists = []
     for idx, fname in enumerate(flist):
-        offset, conf, dist = s.evaluate(opt, videofile=fname)
+        offset, conf, dist, min_dist = s.evaluate(opt, videofile=fname)
         dists.append(dist)
+
         if filename is not None:            
             conscent_video_info = {
                 "video_filename": opt.videofile,
                 "timestamp": datetime.now(timezone.utc).strftime("UTC-0: %Y-%m-%d-%H-%M-%S"),
                 "id": uuid.uuid4().hex,
                 "av_offset": float(offset),
-                "min_dist": float(dist.min()),
-                "max_dist": float(dist.max()),
-                "mean_dist": float(dist.mean()),
+                "min_dist": float(min_dist),
                 "confidence_score": float(conf),
             }
             

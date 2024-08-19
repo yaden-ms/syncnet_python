@@ -7,7 +7,7 @@ def get_conscent_video_verification_info(video_path, output_json_path):
     if not os.path.exists(video_path):
         raise FileNotFoundError(f"Video file {video_path} not found.")
 
-    if output_json_path[:-5] != ".json":
+    if output_json_path[-5:] != ".json":
         raise ValueError(f"Output json file path {output_json_path} is not a json file.")
 
     try:

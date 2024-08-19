@@ -3,6 +3,7 @@
 
 import time, pdb, argparse, subprocess, pickle, os, gzip, glob
 import json
+import uuid
 from datetime import datetime, timezone
 
 from SyncNetInstance import *
@@ -28,6 +29,7 @@ def main(opt, filename=None):
             conscent_video_info = {
                 "video_filename": opt.videofile,
                 "timestamp": datetime.now(timezone.utc).strftime("UTC-0: %Y-%m-%d-%H-%M-%S"),
+                "id": uuid.uuid4().hex,
                 "av_offset": float(offset),
                 "min_dist": float(dist.min()),
                 "max_dist": float(dist.max()),

@@ -28,12 +28,12 @@ def main(opt, filename=None):
 
         if filename is not None:            
             conscent_video_info = {
-                "video_filename": opt.videofile,
-                "timestamp": datetime.now(timezone.utc).strftime("UTC-0: %Y-%m-%d-%H-%M-%S"),
+                "videoFileName": opt.videofile,
+                "timeStamp": datetime.now(timezone.utc).strftime("UTC-0: %Y-%m-%d-%H-%M-%S"),
                 "id": uuid.uuid4().hex,
-                "av_offset": float(offset),
-                "min_dist": float(min_dist),
-                "confidence_score": float(conf),
+                "avOffset": float(offset),
+                "minDist": float(min_dist),
+                "confidenceScore": float(conf),
             }
             
             # with open(filename, 'a') as f:

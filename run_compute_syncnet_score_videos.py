@@ -1,4 +1,5 @@
 import os
+import sys
 import glob
 import numpy as np
 
@@ -11,8 +12,12 @@ def get_conscent_video_verification_info(video_path, output_json_path):
         raise ValueError(f"Output json file path {output_json_path} is not a json file.")
 
     try:
-        os.system(f"python run_pipeline.py --videofile {video_path} --reference {os.path.split(video_path)[-1][:-4]} --data_dir ./output")
-        os.system(f"python run_syncnet.py --videofile {video_path} --reference {os.path.split(video_path)[-1][:-4]} --data_dir ./output --save_file_path {output_json_path}")
+        os.system(
+            f"python {os.path.join(os.path.dirname(__file__), 'run_pipeline.py')} --videofile {video_path} --reference {os.path.split(video_path)[-1][:-4]} --data_dir ./output"
+        )
+        os.system(
+            f"python {os.path.join(os.path.dirname(__file__), 'run_syncnet.py')} --videofile {video_path} --reference {os.path.split(video_path)[-1][:-4]} --data_dir ./output --save_file_path {output_json_path}"
+        )
     except Exception as e:
         print(f"Error: {e}")
     

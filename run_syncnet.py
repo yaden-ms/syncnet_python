@@ -18,6 +18,14 @@ def main(opt, filename=None):
 
     flist = glob.glob(os.path.join(opt.crop_dir, opt.reference, '0*.avi'))
     flist.sort()
+    
+    conscent_video_info = {
+        "videoFileName": opt.videofile,
+        "timeStamp": datetime.now(timezone.utc).strftime("UTC-0: %Y-%m-%d-%H-%M-%S"),
+        "id": uuid.uuid4().hex,
+        "status": False,
+        "statusMessage": "No processed video detected. Please check the input video whether it meets the requirements, e.g. the face can be always detected in each video frame.",
+    }
 
     # ==================== GET OFFSETS ====================
 
@@ -27,14 +35,16 @@ def main(opt, filename=None):
         dists.append(dist)
 
         if filename is not None:            
-            conscent_video_info = {
+            conscent_video_info.update({
                 "videoFileName": opt.videofile,
                 "timeStamp": datetime.now(timezone.utc).strftime("UTC-0: %Y-%m-%d-%H-%M-%S"),
                 "id": uuid.uuid4().hex,
                 "avOffset": float(offset),
                 "minDist": float(min_dist),
                 "confidenceScore": float(conf),
-            }
+                "status": True,
+                "statusMessage": "Success"
+            })
             
             # with open(filename, 'a') as f:
             #     f.write("%s %f %f %f %f %f %f\n" % (opt.videofile, offset, conf, dist.min(), dist.max(), dist.mean(), numpy.median(dist)))
@@ -44,6 +54,10 @@ def main(opt, filename=None):
             f.close()
             
         else:
+            conscent_video_info.update({
+                "status": False,
+                "statusMessage": f"No such file {filename} provided, cannot write to it."
+            })
             raise Exception(f"No such file {filename} provided, cannot write to it.")
 
         

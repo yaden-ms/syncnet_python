@@ -58,7 +58,7 @@ def main(opt, filename=None):
                 "status": False,
                 "statusMessage": f"No such file {filename} provided, cannot write to it."
             })
-            raise Exception(f"No such file {filename} provided, cannot write to it.")
+            return conscent_video_info
 
         
     # ==================== PRINT RESULTS TO FILE ====================

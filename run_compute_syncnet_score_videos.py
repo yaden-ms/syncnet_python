@@ -35,7 +35,7 @@ def main(video_folder_name, video_extension_name='mp4'):
     if os.path.exists(filename):
         os.remove(filename)
     with open(filename, 'w') as f:
-        f.write("video_filename av_offset confidence_score dist_min dist_max dist_mean dist_median\n")
+        f.write("video_filename av_offset confidence_score dist_min\n")
     f.close()
 
     # ==================== RUN SYNCNET ====================
@@ -45,14 +45,11 @@ def main(video_folder_name, video_extension_name='mp4'):
         os.system(f"python run_syncnet.py --videofile {video_list[i]} --reference {os.path.split(video_list[i])[-1][:-4]} --data_dir ./output --save_file_path {syncnet_results}")
         with open(syncnet_results, 'r') as fr, open(filename, 'a') as fw:
             results = json.load(fr)
-            video_filename = results['videoFileName']
+            video_filename = os.path.basename(results['videoFileName'])
             av_offset = results['avOffset']
             confidence_score = results['confidenceScore']
-            dist_min = results['distMin']
-            dist_max = results['distMax']
-            dist_mean = results['distMean']
-            dist_median = results['distMedian']
-            fw.write(f"{video_filename} {av_offset} {confidence_score:.4f} {dist_min:.4f} {dist_max:.4f} {dist_mean:.4f} {dist_median:.4f}\n")
+            min_dist = results['minDist']
+            fw.write(f"{video_filename} {av_offset} {confidence_score:.4f} {min_dist:.4f}\n")
 
     # ==================== CALCULATE RESULTS TO FILE ====================
     results = []
@@ -66,7 +63,7 @@ def main(video_folder_name, video_extension_name='mp4'):
     results = np.array(results)
     results = np.mean(results, axis=0)
     with open(filename, 'a') as f:
-        f.write(f"Mean Average Score {' '.join([f'{res:.4f}' for res in results])}\n")
+        f.write(f"\nMean Average Score {' '.join([f'{res:.4f}' for res in results])}\n")
     f.close()
 
 

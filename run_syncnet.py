@@ -47,11 +47,7 @@ def main(opt, filename=None):
                 "timeStamp": datetime.now(timezone.utc).strftime("UTC-0: %Y-%m-%d-%H-%M-%S"),
                 "id": uuid.uuid4().hex,
                 "avOffset": float(offset),
-                # "minDist": float(min_dist),
-                "distMin": float(dist.min()),
-                "distMax": float(dist.max()),
-                "distMean": float(dist.mean()),
-                "distMedian": float(numpy.median(dist)),
+                "minDist": float(min_dist),
                 "confidenceScore": float(conf),
                 "status": True,
                 "statusMessage": "Success"

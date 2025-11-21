@@ -1,6 +1,7 @@
 import os
 import sys
 import glob
+import json
 import numpy as np
 
 
@@ -20,60 +21,70 @@ def get_conscent_video_verification_info(video_path, output_json_path):
         )
     except Exception as e:
         print(f"Error: {e}")
-    
+
     return output_json_path
-    
 
-# def main(video_folder_name, video_extension_name='mp4'):
-#     print(os.path.join(video_folder_name, f"*{video_extension_name}"))
-#     video_list = glob.glob(os.path.join(video_folder_name, f"*{video_extension_name}"))
-#     assert len(video_list) > 0, f"No video found in {video_folder_name} with extension {video_extension_name}, please double check the video folder name and extension name."
 
-#     # ==================== PREPARE RESULT FILE ====================
-#     filename = './result.txt'
-#     if os.path.exists(filename):
-#         os.remove(filename)
-#     with open(filename, 'w') as f:
-#         f.write("video_filename av_offset confidence_score dist_min dist_max dist_mean dist_median\n")
-#     f.close()
+def main(video_folder_name, video_extension_name='mp4'):
+    print(os.path.join(video_folder_name, f"*{video_extension_name}"))
+    video_list = glob.glob(os.path.join(video_folder_name, f"*{video_extension_name}"))
+    assert len(video_list) > 0, f"No video found in {video_folder_name} with extension {video_extension_name}, please double check the video folder name and extension name."
 
-#     # ==================== RUN SYNCNET ====================
-#     for i in range(len(video_list)):
-#         os.system(f"python run_pipeline.py --videofile {video_list[i]} --reference {os.path.split(video_list[i])[-1][:-4]} --data_dir ./output")
-#         os.system(f"python run_syncnet.py --videofile {video_list[i]} --reference {os.path.split(video_list[i])[-1][:-4]} --data_dir ./output")
-#         # print(video_list[i])
-    
-#     # ==================== CALCULATE RESULTS TO FILE ====================
-#     results = []
-#     with open(filename, 'r') as f:
-#         lines = f.readlines()
-#         for i in range(1, len(lines)):
-#             metrics_list = lines[i].split()
-#             metrics_list = np.array([float(i) for i in metrics_list[1:]], dtype=np.float32)
-#             results.append(metrics_list)
-#     f.close()
-#     results = np.array(results)
-#     results = np.mean(results, axis=0)
-#     with open(filename, 'a') as f:
-#         f.write(f"Mean Average Score {' '.join([str(i) for i in results])}\n")
-#     f.close()
+    # ==================== PREPARE RESULT FILE ====================
+    filename = './result.txt'
+    if os.path.exists(filename):
+        os.remove(filename)
+    with open(filename, 'w') as f:
+        f.write("video_filename av_offset confidence_score dist_min dist_max dist_mean dist_median\n")
+    f.close()
+
+    # ==================== RUN SYNCNET ====================
+    syncnet_results = "./result.json"
+    for i in range(len(video_list)):
+        os.system(f"python run_pipeline.py --videofile {video_list[i]} --reference {os.path.split(video_list[i])[-1][:-4]} --data_dir ./output")
+        os.system(f"python run_syncnet.py --videofile {video_list[i]} --reference {os.path.split(video_list[i])[-1][:-4]} --data_dir ./output --save_file_path {syncnet_results}")
+        with open(syncnet_results, 'r') as fr, open(filename, 'a') as fw:
+            results = json.load(fr)
+            video_filename = results['videoFileName']
+            av_offset = results['avOffset']
+            confidence_score = results['confidenceScore']
+            dist_min = results['distMin']
+            dist_max = results['distMax']
+            dist_mean = results['distMean']
+            dist_median = results['distMedian']
+            fw.write(f"{video_filename} {av_offset} {confidence_score:.4f} {dist_min:.4f} {dist_max:.4f} {dist_mean:.4f} {dist_median:.4f}\n")
+
+    # ==================== CALCULATE RESULTS TO FILE ====================
+    results = []
+    with open(filename, 'r') as f:
+        lines = f.readlines()
+        for i in range(1, len(lines)):
+            metrics_list = lines[i].split()
+            metrics_list = np.array([float(i) for i in metrics_list[1:]], dtype=np.float32)
+            results.append(metrics_list)
+    f.close()
+    results = np.array(results)
+    results = np.mean(results, axis=0)
+    with open(filename, 'a') as f:
+        f.write(f"Mean Average Score {' '.join([f'{res:.4f}' for res in results])}\n")
+    f.close()
 
 
 
 if __name__ == '__main__':
-    # import argparse
-    # parser = argparse.ArgumentParser(description = "SyncNet")
-    # parser.add_argument('--video_folder_name', type=str, default='./data', help='')
-    # parser.add_argument('--video_extension_name', type=str, default='mp4', help='')
-    # opt = parser.parse_args()
-
-    # main(opt.video_folder_name, opt.video_extension_name)
-    
     import argparse
-    
     parser = argparse.ArgumentParser(description = "SyncNet")
-    parser.add_argument("--input_video_path", type=str, default="", help="Path to the video file")
-    parser.add_argument("--output_json_path", type=str, default="", help="Path to the output json file")
-    args = parser.parse_args()
+    parser.add_argument('--video_folder_name', type=str, default='./data', help='')
+    parser.add_argument('--video_extension_name', type=str, default='mp4', help='')
+    opt = parser.parse_args()
 
-    get_conscent_video_verification_info(video_path=args.input_video_path, output_json_path=args.output_json_path)
+    main(opt.video_folder_name, opt.video_extension_name)
+
+    # import argparse
+
+    # parser = argparse.ArgumentParser(description = "SyncNet")
+    # parser.add_argument("--input_video_path", type=str, default="", help="Path to the video file")
+    # parser.add_argument("--output_json_path", type=str, default="", help="Path to the output json file")
+    # args = parser.parse_args()
+
+    # get_conscent_video_verification_info(video_path=args.input_video_path, output_json_path=args.output_json_path)

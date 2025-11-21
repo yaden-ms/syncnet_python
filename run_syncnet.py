@@ -18,7 +18,7 @@ def main(opt, filename=None):
 
     flist = glob.glob(os.path.join(opt.crop_dir, opt.reference, '0*.avi'))
     flist.sort()
-    
+
     conscent_video_info = {
         "videoFileName": opt.videofile,
         "timeStamp": datetime.now(timezone.utc).strftime("UTC-0: %Y-%m-%d-%H-%M-%S"),
@@ -47,7 +47,11 @@ def main(opt, filename=None):
                 "timeStamp": datetime.now(timezone.utc).strftime("UTC-0: %Y-%m-%d-%H-%M-%S"),
                 "id": uuid.uuid4().hex,
                 "avOffset": float(offset),
-                "minDist": float(min_dist),
+                # "minDist": float(min_dist),
+                "distMin": float(dist.min()),
+                "distMax": float(dist.max()),
+                "distMean": float(dist.mean()),
+                "distMedian": float(numpy.median(dist)),
                 "confidenceScore": float(conf),
                 "status": True,
                 "statusMessage": "Success"
@@ -58,14 +62,14 @@ def main(opt, filename=None):
                 "statusMessage": f"Can't get lipsync scores using SyncNet."
             })
 
-        if filename is not None:            
+        if filename is not None:
             # with open(filename, 'a') as f:
             #     f.write("%s %f %f %f %f %f %f\n" % (opt.videofile, offset, conf, dist.min(), dist.max(), dist.mean(), numpy.median(dist)))
             # f.close()
             with open(filename, 'w') as f:
                 f.write(json.dumps(conscent_video_info, indent=4))
             f.close()
-            
+
         else:
             conscent_video_info.update({
                 "status": False,
@@ -73,13 +77,13 @@ def main(opt, filename=None):
             })
             return conscent_video_info
 
-        
+
     # ==================== PRINT RESULTS TO FILE ====================
 
     with open(os.path.join(opt.work_dir,opt.reference,'activesd.pckl'), 'wb') as fil:
         pickle.dump(dists, fil)
-    
-    
+
+
     return conscent_video_info
 
 
@@ -102,5 +106,5 @@ if __name__ == '__main__':
     setattr(opt,'tmp_dir',os.path.join(opt.data_dir,'pytmp'))
     setattr(opt,'work_dir',os.path.join(opt.data_dir,'pywork'))
     setattr(opt,'crop_dir',os.path.join(opt.data_dir,'pycrop'))
-    
+
     main(opt=opt, filename=opt.save_file_path)

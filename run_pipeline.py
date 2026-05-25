@@ -5,10 +5,8 @@ import numpy as np
 from shutil import rmtree
 
 import scenedetect
-from scenedetect.video_manager import VideoManager
+from scenedetect import open_video
 from scenedetect.scene_manager import SceneManager
-from scenedetect.frame_timecode import FrameTimecode
-from scenedetect.stats_manager import StatsManager
 from scenedetect.detectors import ContentDetector
 
 from scipy.interpolate import interp1d
@@ -221,25 +219,21 @@ def inference_video(opt):
 
 def scene_detect(opt):
 
-  video_manager = VideoManager([os.path.join(opt.avi_dir,opt.reference,'video.avi')])
-  stats_manager = StatsManager()
-  scene_manager = SceneManager(stats_manager)
+  # scenedetect 0.7 API: open_video() returns a VideoStream; SceneManager
+  # handles downscaling automatically when auto_downscale (default) is on.
+  video = open_video(os.path.join(opt.avi_dir,opt.reference,'video.avi'))
+  scene_manager = SceneManager()
   # Add ContentDetector algorithm (constructor takes detector options like threshold).
   scene_manager.add_detector(ContentDetector())
-  base_timecode = video_manager.get_base_timecode()
 
-  video_manager.set_downscale_factor()
+  scene_manager.detect_scenes(video=video, show_progress=False)
 
-  video_manager.start()
-
-  scene_manager.detect_scenes(frame_source=video_manager)
-
-  scene_list = scene_manager.get_scene_list(base_timecode)
+  scene_list = scene_manager.get_scene_list()
 
   savepath = os.path.join(opt.work_dir,opt.reference,'scene.pckl')
 
   if scene_list == []:
-    scene_list = [(video_manager.get_base_timecode(),video_manager.get_current_timecode())]
+    scene_list = [(video.base_timecode, video.base_timecode + video.duration)]
 
   with open(savepath, 'wb') as fil:
     pickle.dump(scene_list, fil)
